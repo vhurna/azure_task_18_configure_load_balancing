@@ -104,51 +104,7 @@ $webSubnetId = (Get-AzVirtualNetworkSubnetConfig -Name $webSubnetName -VirtualNe
 
 # Write your code here -> 
 Write-Host "Creating a load balancer ..."
-## Create load balancer frontend configuration and place in variable. ##
-$lbip = @{
-   Name = $lbName
-   PrivateIpAddress = $lbIpAddress
-   SubnetId = $webSubnetId
-}
-$feip = New-AzLoadBalancerFrontendIpConfig @lbip
 
-## Create backend address pool configuration and place in variable. ##
-$bepool = New-AzLoadBalancerBackendAddressPoolConfig -Name 'myBackEndPool'
-
-## Create the health probe and place in variable. ##
-$probe = @{
-   Name = 'myHealthProbe'
-   Protocol = 'tcp'
-   Port = '8080'
-   IntervalInSeconds = '360'
-   ProbeCount = '5'
-}
-$healthprobe = New-AzLoadBalancerProbeConfig @probe
-
-## Create the load balancer rule and place in variable. ##
-$lbrule = @{
-   Name = 'myHTTPRule'
-   Protocol = 'tcp'
-   FrontendPort = '80'
-   BackendPort = '8080'
-   IdleTimeoutInMinutes = '15'
-   FrontendIpConfiguration = $feip
-   BackendAddressPool = $bePool
-}
-$rule = New-AzLoadBalancerRuleConfig @lbrule -EnableTcpReset
-
-## Create the load balancer resource. ##
-$loadbalancer = @{
-   ResourceGroupName = $resourceGroupName
-   Name = $lbName
-   Location = $location
-   Sku = 'Standard'
-   FrontendIpConfiguration = $feip
-   BackendAddressPool = $bePool
-   LoadBalancingRule = $rule
-   Probe = $healthprobe
-}
-New-AzLoadBalancer @loadbalancer
 
 # Write-Host "Adding VMs to the backend pool"
 # $vms = Get-AzVm -ResourceGroupName $resourceGroupName | Where-Object {$_.Name.StartsWith($webVmName)}
