@@ -1,8 +1,8 @@
-# Work with DNS
+# Configure load balancing
 
-One of your application's first clients is a company called `ornottodo`. They want to deploy your to-do app into their internal network (which is currently in Azure). The challenge here is that `ornottodo` folks want to have it available by domain name rather than internal IP. 
+Another `ornottodo`'s concern is the reliability of our TODO web app. To address it - you updated the script to deploy 2 web servers instead of 1, but now you have somehow balance traffic between them...
 
-In this task, you will have to learn how to work with DNS in Azure.  
+In this task, you will setup Azure Load Balancer to distribute traffic between 2 VMs. 
 
 ## Prerequisites
 
@@ -35,32 +35,41 @@ If you are a Windows user, before running this command, please also run the foll
 
 ## Requirements
 
-In this task, you will need to update the existing PowerShell script `task.ps1`. The original script deploys 2 virtual machines: 
+In this task, you will need to update the existing PowerShell script `task.ps1`. The original script deploys the following resources: 
 
-- `webserver`, used to host the todo web app. It's deployed in a subnet `web`, without public IP.
-- `jumpbox`, used as a dedicated virtual machine for management of `webserver`. It is deployed to a separate subnet, has a public IP, and allows connecting to it through SSH.  
+- virtual network with 2 subnets
+- `webserver-1` and `webserver-2` virtual machines - used to host the todo web app. They are deployed in a subnet `web`, without public IP.
+- `jumpbox` virtual machine, used as a dedicated virtual machine for management of `webserver`. It is deployed to a separate subnet, has a public IP, and allows connecting to it through SSH. 
+- `or.nottodo` private DNS zone, which is already linked to the virtual network 
+- `todo.or.not` A DNS record in the private DNS zone - points to IP `10.20.30.62`
 
-In this task, you need to deploy a private DNS zone `todo.ornottodo` and create a DNS record in it: 
+In this task, you need to configure loadbalancing for the web servers: 
+
+ deploy a load balancer, configure it, and point domain `todo.or.nottodo` in the private DNS zone to it's frontend IT and create a DNS record in it: 
 
 1. Review the script `task.ps1`.  
 
-2. Add deployment of private DNS zone `or.nottodo`. To deploy a private DNS zone, use comandlet [New-AzPrivateDnsZone](https://learn.microsoft.com/en-us/powershell/module/az.privatedns/new-azprivatednszone?view=azps-12.0.0). 
+2. Add deployment of private load balancer to the script: 
 
-3. Don't forget to add linking of newly-created DNS zone to the virtual network, where VMs are deployed you can do it with comandlet [New-AzPrivateDnsVirtualNetworkLink](https://learn.microsoft.com/en-us/powershell/module/az.privatedns/new-azprivatednsvirtualnetworklink?view=azps-12.0.0). Make sure to enable [auto-registration](https://learn.microsoft.com/en-us/azure/dns/private-dns-autoregistration) feature when creating a link. 
+- Use the [quickstart](https://learn.microsoft.com/en-us/azure/load-balancer/quickstart-load-balancer-standard-internal-powershell#create-load-balancer) to get all nessesary commands 
+- Loadbalancer should be deployed into the subnet `webservers`
+- Loadbalancer frontend IP should be set to `10.20.30.62`
+- Your backend uses port 8080 to run the web app - use this port in both health probe and load balancing rule configuration 
+- Use 80 as a frontend port in the load balancing rule 
 
-4. Add creating of a `CNAME` record in the private DNS zone — use comandlet [New-AzPrivateDnsRecordSet](https://learn.microsoft.com/en-us/powershell/module/az.privatedns/new-azprivatednsrecordset?view=azps-12.0.0). `CNAME` should point domain `todo.or.nottodo` to the domain, `webserver` virtual machine will get with auto-registration in the private DNS zone. 
+3. Uncommend (and edit if needed) code at the end of `task.ps1`, which adds VMs to the load balancer backend pool 
 
-5. When the script is ready, run it to deploy resources to your subscription.
+4. When the script is ready, run it to deploy resources to your subscription.
 
-6. To test yourself, connect to the `jumbox` VM with SSH, and test with curl, if you can get to the todo web app by its domain name `todo.or.nottodo` (app will be running on `port 8080`, so you will need to use the following URL for curl: `http://todo.or.nottodo:8080/`). 
+5. To test yourself, connect to the `jumbox` VM with SSH, and test with curl, if you can get to the todo web app by its domain name `todo.or.nottodo` - app should be accessible on the following URL: `http://todo.or.nottodo/`. 
 
-7. Run artifacts generation script `scripts/generate-artifacts.ps1`.
+6. Run artifacts generation script `scripts/generate-artifacts.ps1`.
 
-8. Test yourself using the script `scripts/validate-artifacts.ps1`.
+7. Test yourself using the script `scripts/validate-artifacts.ps1`.
 
-9. Make sure that changes to both `task.ps1` and `result.json` are committed to the repo, and submit the solution for review. 
+8. Make sure that changes to both `task.ps1` and `result.json` are committed to the repo, and submit the solution for review. 
 
-10. When the solution is validated, delete the resources you deployed with the Powershell script — you won't need them for the next tasks. 
+9. When the solution is validated, delete the resources you deployed with the Powershell script — you won't need them for the next tasks. 
 
 
 ## How to complete tasks in this module 
@@ -85,4 +94,3 @@ Here is how to complete tasks in this module:
 6. When all tests will pass — commit your changes and submit the solution for review. 
 
 Pro tip: if you are stuck with any of the implementation steps, run `scripts/generate-artifacts.ps1` and `scripts/validate-artifacts.ps1`. The validation script might give you a hint on what to do.  
-

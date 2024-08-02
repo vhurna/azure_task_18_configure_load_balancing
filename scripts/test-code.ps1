@@ -53,3 +53,9 @@ if ($scriptContent | Where-Object {$_.ToLower().Contains("new-azprivatednsrecord
 } else { 
     throw "Script is not creating a DNS record resource with a New-AzPrivateDnsRecordSet comandled, please review it. "
 } 
+
+if ($scriptContent | Where-Object {$_.ToLower().Contains("new-azloadbalancer")}) {
+    Write-Host "Checking if script creates a load balancer - ok" 
+} else { 
+    throw "Script is not creating a load balancer resource with a New-AzLoadBalancer comandled, please review it. "
+} 

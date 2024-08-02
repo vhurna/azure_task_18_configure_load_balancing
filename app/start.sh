@@ -1,7 +1,7 @@
 #! /bin/bash 
 
 echo "Running a setup steps ..."
-cat /etc/hostname > /data/app/todolist/static/files/hostname
+hostname > /data/app/todolist/static/files/hostname
 
 pip install -r requirements.txt
 python3 manage.py migrate

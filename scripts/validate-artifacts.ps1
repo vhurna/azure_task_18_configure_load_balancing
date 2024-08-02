@@ -5,7 +5,7 @@ param(
 
 
 # default script values 
-$taskName = "task17"
+$taskName = "task18"
 
 $artifactsConfigPath = "$PWD/artifacts.json"
 $resourcesTemplateName = "exported-template.json"
@@ -163,17 +163,86 @@ if ($dnsZoneLink.properties.registrationEnabled) {
     throw "Please make sure that your private DNS zone link for virtual network has auto-registration enabled and try again."
 }
 
-$cname = ( $TemplateObject.resources | Where-Object -Property type -EQ "Microsoft.Network/privateDnsZones/CNAME" | Where-Object {$_.name.Contains("'/todo'")})
-if ($cname) { 
-    if ($cname.properties.cnameRecord.cname -eq 'webserver.or.nottodo') { 
-        Write-Output "`u{2705} Checked CNAME DNS record - OK."
+$arecord = ( $TemplateObject.resources | Where-Object -Property type -EQ "Microsoft.Network/privateDnsZones/A" | Where-Object {$_.name.Contains("'/todo'")})
+if ($arecord) { 
+    if ($arecord.properties.aRecords.ipv4Address -eq '10.20.30.62') { 
+        Write-Output "`u{2705} Checked A DNS record - OK."
     } else { 
         Write-Output `u{1F914}
-        throw "Please make sure that you have a CNAME record for the 'todo' host points to the auto-registered DNS name of the webserver virtual machine ('webserver.or.nottodo') and try again."
+        throw "Please make sure that you have an A record for the 'todo' host points to the load balancer front-end IP and try again."
     }
 } else { 
     Write-Output `u{1F914}
-    throw "Please make sure that you have a CNAME record for the 'todo' host created in your private DNS zone and try again."
+    throw "Please make sure that you have an A record for the 'todo' host points to the load balancer front-end IP and try again."
+}
+
+$loadBalancer = ( $TemplateObject.resources | Where-Object -Property type -EQ "Microsoft.Network/loadBalancers" )
+if ($loadBalancer ) {
+    if ($loadBalancer.name.Count -eq 1) { 
+        Write-Output "`u{2705} Checked if load balancer exists - OK."
+    }  else { 
+        Write-Output `u{1F914}
+        throw "More than one vload balancer resource was found in the task resource group. Please make sure that your script deploys only 1 load balancer, and try again."
+    }
+} else {
+    Write-Output `u{1F914}
+    throw "Unable to find load balancer in the task resource group. Please make sure that your script creates a load balancer and try again."
+}
+
+if ($loadBalancer.properties.frontendIPConfigurations.Count -eq 1) { 
+    Write-Output "`u{2705} Checked if load balancer has only 1 front-end IP configuration - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balanser has only 1 Frontend IP configuration and try again."
+}
+
+if ($loadBalancer.properties.frontendIPConfigurations[0].properties.privateIPAddress -eq '10.20.30.62') { 
+    Write-Output "`u{2705} Checked if load balancer has private IP set for the frontend - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balanser has frontend IP set to '10.20.30.62' and try again."
+}
+
+if ($loadBalancer.properties.backendAddressPools.Count -eq 1) { 
+    Write-Output "`u{2705} Checked if load balancer has a backend address pool - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balanser has 1 backend address pool and try again."
+}
+
+if ($loadBalancer.properties.backendAddressPools[0].properties.loadBalancerBackendAddresses.Count -eq 2) { 
+    Write-Output "`u{2705} Checked if load balancer backend pool has backend targets - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balanser backend pool has 2 backend targets and try again"
+}
+
+if ($loadBalancer.properties.loadBalancingRules.Count -eq 1) { 
+    Write-Output "`u{2705} Checked if load balancer backend pool has load balancing rules - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balanser has 1 load balancing rule and try again"
+}
+
+if ($loadBalancer.properties.loadBalancingRules[0].properties.frontendPort -eq 80 -and $loadBalancer.properties.loadBalancingRules[0].properties.backendPort -eq 8080) { 
+    Write-Output "`u{2705} Checked if load balancer rule frontend and backend ports - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balancing rule has frontend port set to 80 and backend port set to 8080 and try again"
+}
+
+if ($loadBalancer.properties.probes.Count -eq 1) { 
+    Write-Output "`u{2705} Checked if load balancer has health probe - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that load balancer has 1 health probe and try again"
+}
+
+if ($loadBalancer.properties.probes[0].properties.port -eq 8080) { 
+    Write-Output "`u{2705} Checked if health probe uses port 8080 - OK."
+} else { 
+    Write-Output `u{1F914}
+    throw "Please make sure that health probe uses port 8080 and try again"
 }
 
 Write-Output ""
