@@ -1,0 +1,20 @@
+name: Test
+
+on:
+  workflow_dispatch: 
+  pull_request:
+
+jobs: 
+  validate-task:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: 'Run code analysis' 
+      shell: pwsh
+      run: scripts/test-code.ps1
+
+    - name: 'Run test script' 
+      shell: pwsh
+      run: scripts/validate-artifacts.ps1
+  
