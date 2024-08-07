@@ -1,4 +1,4 @@
-# Configure load balancing
+# Configure Load Balancing
 
 Another `ornottodo` concern is the reliability of TODO web app. To address it, you have already updated the script to deploy 2 web servers instead of 1. However, now you have to somehow balance traffic between them.
 
@@ -70,7 +70,7 @@ In this task, you need to configure load balancing for the web servers. Specific
 9. When the solution is validated, delete the resources you deployed with the PowerShell script — you won't need them for the next tasks;
 
 
-## How to complete tasks in this module 
+## How to Complete Tasks in This Module 
 
 Tasks in this module are relying on 2 PowerShell scripts: 
 
